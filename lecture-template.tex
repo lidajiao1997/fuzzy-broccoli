@@ -1,0 +1,604 @@
+% !TEX program = xelatex
+% ============================================================
+%  Lecture Notes Template —— 单文件通用讲义模板（示例版）
+% ------------------------------------------------------------
+%  ★ 自包含：排版机制 + 参数接口 + 正文 + 文献全部在本文件内。
+%  ★ 换一门课：只改顶部「用户接口区」与下方「正文区」。
+%  ★ 本文件正文是一套完整的示例讲义（图论与初等数论），用于
+%    演示模板在真实知识内容下的排版效果；请整段替换为你自己的课程。
+%  ★ 文献沿用 filecontents* 内嵌方式，编译时自动生成 refs.bib。
+%  ★ 编译链：XeLaTeX -> biber -> XeLaTeX -> XeLaTeX
+% ============================================================
+
+% ==================== 文献数据（示例条目，按原方式内嵌）====================
+% 编译时自动生成 refs.bib；[overwrite] 会覆盖同名文件。
+% 换成你自己的文献时，直接改这个块里的条目即可。
+\begin{filecontents*}[overwrite]{refs.bib}
+	@book{graphbook,
+		author    = {J. Smith and L. Wang},
+		title     = {Graph Theory: Structures and Methods},
+		publisher = {Academic Press},
+		year      = {2019},
+		edition   = {2nd},
+	}
+	@article{graphart,
+		author  = {M. Brown},
+		title   = {On Connectivity and Spanning Trees},
+		journal = {Journal of Combinatorial Examples},
+		year    = {2020},
+		volume  = {12},
+		pages   = {45--67},
+	}
+	@book{numbook,
+		author    = {D. Miller},
+		title     = {Elementary Number Theory with Applications},
+		publisher = {Sample House},
+		year      = {2018},
+	}
+	@article{numart,
+		author  = {S. Davis and K. Wilson},
+		title   = {Congruences and Their Applications},
+		journal = {Sample Mathematical Review},
+		year    = {2021},
+		volume  = {8},
+		pages   = {101--118},
+	}
+\end{filecontents*}
+
+% ==================== 编译器强制检测（内部机制，勿改）====================
+\RequirePackage{iftex}
+\ifXeTeX
+\else
+\GenericError{}{编译错误：本模板必须使用 XeLaTeX 编译！}{请将编译器切换为 XeLaTeX 重新编译。}{}
+\stop
+\fi
+
+% ============================================================
+%  ★★★ 用户接口区 —— 换一门课，只改这一段 ★★★
+%  所有可改项集中在这里，每个接口带【接口N】编号与说明。
+% ============================================================
+
+% ---------- 【接口1】文档类与选项 ----------
+% book：分"篇(part)+章(chapter)"的讲义；report 无 part 页；article 用 section 顶格
+\newcommand{\LectureClass}{book}
+\newcommand{\LectureClassOptions}{openany}   % openany=章可从右页开始；openright=一律右页
+
+% ---------- 【接口2】封面元数据 ----------
+\newcommand{\CourseTitle}{图论与数论基础}
+\newcommand{\CourseSubtitle}{结构、证明与计算方法}
+\newcommand{\CourseAuthor}{讲义编写组}
+\newcommand{\CourseDate}{2026年1月}
+
+% ---------- 【接口3】主题色（十进制 RGB，0--255）----------
+\newcommand{\ThemeRed}{0}
+\newcommand{\ThemeGreen}{83}
+\newcommand{\ThemeBlue}{159}
+
+% ---------- 【接口4】页面边距 ----------
+\newcommand{\MarginLeft}{2cm}
+\newcommand{\MarginRight}{2cm}
+\newcommand{\MarginTop}{2cm}
+\newcommand{\MarginBottom}{2cm}
+
+% ---------- 【接口5】章节称谓 ----------
+% 用于"第X章"与页眉；英文讲义可改成 Chapter
+\newcommand{\ChapterWord}{章}
+
+% ---------- 【接口6】定理类环境显示名 ----------
+\newcommand{\NameDefinition}{定义}
+\newcommand{\NameExample}{例}
+\newcommand{\NameExercise}{习题}
+\newcommand{\NameTheorem}{定理}
+\newcommand{\NameLemma}{引理}
+\newcommand{\NameCorollary}{推论}
+\newcommand{\NameProposition}{命题}
+\newcommand{\NameSolution}{解答}
+
+% ---------- 【接口7】习题解答开关 ----------
+% true  = 含解答版（solution 环境显示）
+% false = 练习版  （solution 整段跳过；注意其内 \label 不会定义）
+% 唯一要动的一行：下面二选一，注释掉另一个
+\newif\ifshowanswer
+\showanswertrue        % <- 含解答版
+%\showanswerfalse      % <- 练习版
+
+% ---------- 【接口8】文献与索引标题 ----------
+% 文献源固定为本文件开头的 filecontents* 块（按原方式，不另设路径接口）
+\newcommand{\BibTitle}{参考文献}
+\newcommand{\IndexTitle}{术语索引}
+% ============================================================
+%  接口区结束。以下为模板机制与正文，一般不需要改。
+% ============================================================
+
+\documentclass[\LectureClassOptions]{\LectureClass}
+\usepackage[UTF8]{ctex}
+\usepackage{graphicx,xcolor,tocloft}
+\usepackage{fancyhdr,geometry,titlesec}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage{comment}
+\usepackage[backend=biber,style=gb7714-2015]{biblatex}
+\usepackage{imakeidx}
+
+% ---------- 用接口参数装配：颜色 / 边距 / 文献 / 索引 ----------
+\definecolor{LectureTheme}{RGB}{\ThemeRed,\ThemeGreen,\ThemeBlue}
+\geometry{left=\MarginLeft,right=\MarginRight,top=\MarginTop,bottom=\MarginBottom}
+\addbibresource{refs.bib}
+\makeindex[title=\IndexTitle]
+
+% ---------- 字体警告过滤（换系统后若报警，可在此追加）----------
+\usepackage{silence}
+\WarningFilter{latexfont}{Font shape `TU/FandolSong-Regular(0)/b/it' undefined}
+\WarningFilter{latexfont}{Font shape `TU/SimHei(0)/b/n' undefined}
+
+% ==================== 定理环境设置 ====================
+\newtheoremstyle{mydefinition}{\topsep}{\topsep}{}{0pt}{\heiti\bfseries}{.}{.5em}{}
+\newtheoremstyle{myplain}{\topsep}{\topsep}{}{0pt}{\heiti\bfseries}{.}{.5em}{}
+\theoremstyle{mydefinition}
+\newtheorem{definition}{\NameDefinition}[chapter]
+\newtheorem{example}{\NameExample}[chapter]
+\newtheorem{exercise}{\NameExercise}[chapter]
+\theoremstyle{myplain}
+\newtheorem{theorem}{\NameTheorem}[chapter]
+\newtheorem{lemma}[theorem]{\NameLemma}
+\newtheorem{corollary}[theorem]{\NameCorollary}
+\newtheorem{proposition}[theorem]{\NameProposition}
+
+% ==================== 习题解答环境（受接口7控制）====================
+\ifshowanswer
+	\newenvironment{solution}{\begin{proof}[\NameSolution]}{\end{proof}}
+\else
+	\excludecomment{solution}
+\fi
+\newenvironment{solution*}{\begin{proof}[\NameSolution]}{\end{proof}}
+\newcommand{\answerstatus}{\ifshowanswer 含解答\else 练习版\fi}
+
+% ==================== 目录设置 ====================
+\renewcommand{\cfttoctitlefont}{\hfill\color{LectureTheme}\heiti\Large}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftpartpagefont}{}
+\renewcommand{\cftpartafterpnum}{\hspace{0pt}}
+\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftsecfont}{\normalfont}
+\renewcommand{\cftsubsecfont}{\normalfont}
+\setlength{\cftbeforetoctitleskip}{-0.5em}
+\setlength{\cftaftertoctitleskip}{0.5em}
+\setlength{\cftbeforechapskip}{3pt}
+\setlength{\cftbeforesecskip}{0pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+
+% ==================== 页眉页脚 ====================
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\color{LectureTheme}\leftmark}
+\fancyfoot[LE,RO]{\color{LectureTheme}\thepage}
+\renewcommand{\headrule}{{\color{LectureTheme}\hrule height 0.4pt width\headwidth}}
+\renewcommand{\footrule}{{\color{LectureTheme}\hrule height 0.4pt width\headwidth}}
+\fancypagestyle{plain}{%
+	\fancyhf{}%
+	\fancyhead[LE,RO]{\color{LectureTheme}\leftmark}%
+	\fancyfoot[LE,RO]{\color{LectureTheme}\thepage}%
+	\renewcommand{\headrule}{{\color{LectureTheme}\hrule height 0.4pt width\headwidth}}%
+	\renewcommand{\footrule}{{\color{LectureTheme}\hrule height 0.4pt width\headwidth}}%
+}
+
+% ==================== 章节标题格式 ====================
+\titleformat{\chapter}
+{\color{LectureTheme}\heiti\Large\centering}
+{第\arabic{chapter}\ChapterWord}
+{0.5em}
+{}
+\titlespacing*{\chapter}{0pt}{-1.5em}{1em}
+\titleformat{\section}
+{\color{LectureTheme}\heiti\large}{\thesection}{0.5em}{}
+\titlespacing*{\section}{0pt}{0.5em}{0.5em}
+\titleformat{\subsection}
+{\color{LectureTheme}\heiti\normalsize}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{0.5em}{0.5em}
+\renewcommand{\chaptermark}[1]{\markboth{第\arabic{chapter}\ChapterWord\ #1}{}}
+
+% ==================== 自定义 Part 页 ====================
+\newcommand{\mypart}[2]{%
+	\cleardoublepage
+	\thispagestyle{empty}
+	\vspace*{2cm}%
+	\noindent{\color{LectureTheme}\Huge\bfseries #1}%
+	\par\vspace{1cm}%
+	\noindent #2%
+	\par\vfill
+	\addcontentsline{toc}{part}{#1}%
+}
+
+% ==================== 正文开始 ====================
+\begin{document}
+	% ---------- 封面：全部取自接口2 ----------
+	\begin{titlepage}
+		\thispagestyle{empty}
+		\centering
+		\vspace*{2cm}
+		{\color{LectureTheme}\rule{\textwidth}{2pt}}\par
+		\vspace{1.5cm}
+		{\color{LectureTheme}\Huge \textbf{\CourseTitle}}\par
+		\vspace{0.5cm}
+		{\color{LectureTheme}\Large \CourseSubtitle}\par
+		\vspace{1.5cm}
+		{\color{LectureTheme}\rule{\textwidth}{2pt}}\par
+		\vspace{4cm}
+		{\Large \CourseAuthor}\par
+		\vspace{0.5cm}
+		{\large \CourseDate}\par
+		\vfill
+	\end{titlepage}
+	\newpage\null\thispagestyle{empty}\newpage
+
+	% ---------- 目录 ----------
+	\setcounter{page}{1}
+	\tableofcontents
+	\newpage
+
+	% ============================================================
+	%  ★ 正文区：以下为完整示例讲义（图论与初等数论），
+	%    用于展示模板在真实知识内容下的版式；请整段替换。
+	%  可用环境：definition/example/exercise/theorem/lemma/corollary/
+	%    proposition/proof/solution(受开关)/solution*(恒显)、\mypart、\cite、
+	%    \index、表格、TikZ、align/cases/矩阵/行列式等数学环境。
+	%  切勿在此写 \documentclass/\usepackage/\begin{document}/
+	%    \printbibliography/\printindex。
+	% ============================================================
+
+	\mypart{图论基础}{%
+		图论以顶点与边为语言，刻画对象之间"相邻"这一最基本的关系。它兼具直观的图形与严谨的结构，是组合数学的重要分支。\par
+		本篇从图与度数出发，依次讨论连通性、树与生成树，以及欧拉图与哈密顿图。
+	}
+
+	\chapter{图的基本概念}
+	\section{图与度数}
+	\subsection{图的定义}
+	一个\textbf{图}\index{图} $G$ 是一个二元组 $G=(V,E)$，其中 $V$ 是有限非空集合，称为\textbf{顶点集}；$E$ 是 $V$ 中某些二元子集构成的集合，称为\textbf{边集}。若 $e=\{u,v\}\in E$，则称 $u$ 与 $v$ \textbf{相邻}，记作 $u\sim v$，并称 $e$ 与 $u,v$ 相关联\cite{graphbook}。
+
+	图 $G$ 的顶点数 $|V|$ 与边数 $|E|$ 分别称为它的\textbf{阶}与\textbf{规模}。下面的例子给出一个小图及其邻接矩阵。
+
+	\begin{example}\label{ex:graph1}
+		设 $G=(V,E)$，其中
+		\[
+			V=\{v_1,v_2,v_3,v_4\},\qquad
+			E=\{\{v_1,v_2\},\{v_1,v_3\},\{v_2,v_4\},\{v_3,v_4\}\}.
+		\]
+		则 $G$ 是一个 $4$ 阶图，其邻接矩阵为
+		\[
+			A(G)=
+			\begin{pmatrix}
+				0 & 1 & 1 & 0 \\
+				1 & 0 & 0 & 1 \\
+				1 & 0 & 0 & 1 \\
+				0 & 1 & 1 & 0
+			\end{pmatrix}.
+		\]
+		邻接矩阵中第 $i$ 行第 $j$ 列的元素 $a_{ij}$ 定义为
+		\[
+			a_{ij}=
+			\begin{cases}
+				1, & v_i\sim v_j,\\
+				0, & \text{否则}.
+			\end{cases}
+		\]
+	\end{example}
+
+	\subsection{顶点的度数}
+	\begin{definition}[度数]
+		设 $G=(V,E)$，顶点 $v\in V$ 的\textbf{度数}\index{度数} $d(v)$ 是与 $v$ 相关联的边的条数。若 $d(v)=0$，则称 $v$ 为\textbf{孤立点}。
+	\end{definition}
+
+	度数与边数之间有一个基本而优美的联系。
+
+	\begin{theorem}[握手定理]\label{thm:handshake}
+		设 $G=(V,E)$，则
+		\[
+			\sum_{v\in V} d(v)=2\,|E|.
+		\]
+	\end{theorem}
+	\begin{proof}
+		每条边 $e=\{u,v\}$ 恰有两个端点。在对所有顶点的度数求和时，边 $e$ 分别被其两个端点各计数一次，故每条边恰好被计数两次。将所有边的贡献相加即得 $\sum_{v\in V}d(v)=2|E|$。
+	\end{proof}
+
+	握手定理的一个重要推论是：任意图中度数为奇数的顶点个数必为偶数\cite{graphart}。这是因为所有度数之和为偶数，而其中偶数度顶点贡献偶数，故奇数度顶点的贡献之和也必须为偶数。
+
+	\begin{exercise}\label{ex:degree}
+		设图 $G$ 有 $n$ 个顶点、$m$ 条边，其中有 $k$ 个顶点的度数为 $3$，其余顶点的度数为 $2$。试求 $k$ 与 $n,m$ 满足的关系。
+	\end{exercise}
+	\begin{solution}
+		由握手定理，度数总和为 $3k+2(n-k)=2n+k$，它应等于 $2m$。故
+		\[
+			2n+k=2m\quad\Longrightarrow\quad k=2(m-n).
+		\]
+		特别地，$k$ 必为偶数，这与奇数度顶点个数为偶数的结论一致。
+	\end{solution}
+
+	\section{路与连通性}
+	\subsection{途径、迹与路}
+	设 $G=(V,E)$。顶点与边交替出现的序列
+	\[
+		v_0\,e_1\,v_1\,e_2\,\cdots\,e_k\,v_k
+	\]
+	称为一条\textbf{途径}，其中 $e_i=\{v_{i-1},v_i\}$。若各边 $e_1,\dots,e_k$ 互不相同，则称为\textbf{迹}；若各顶点 $v_0,\dots,v_k$ 互不相同，则称为\textbf{路}\index{路}。首尾相接的路 $v_0v_1\cdots v_kv_0$ 称为\textbf{圈}。
+
+	\begin{definition}[连通性]
+		若图 $G$ 中任意两个顶点之间都存在一条路，则称 $G$ 是\textbf{连通的}\index{连通}。
+	\end{definition}
+
+	\begin{example}
+		例~\ref{ex:graph1} 中的图 $G$ 是连通的：从任一顶点出发，至多经过两条边即可到达其余任一顶点。例如从 $v_1$ 到 $v_4$ 可走 $v_1v_2v_4$。
+	\end{example}
+
+	\section{图的图示}
+	为直观展示图的结构，下面用 TikZ 绘制一个连通图。图中每个圆点代表一个顶点，线段代表一条边。
+
+	\begin{center}
+		\begin{tikzpicture}[scale=1.1, vertex/.style={circle, draw=blue!70!black, fill=blue!12, minimum size=5mm, inner sep=0pt}]
+			\node[vertex] (v1) at (0,1.6) {};
+			\node[vertex] (v2) at (-1.4,0.5) {};
+			\node[vertex] (v3) at (1.4,0.5) {};
+			\node[vertex] (v4) at (-0.9,-1.2) {};
+			\node[vertex] (v5) at (0.9,-1.2) {};
+			\draw (v1)--(v2) (v1)--(v3) (v2)--(v3) (v2)--(v4) (v3)--(v5) (v4)--(v5);
+			\node[above] at (v1) {$v_1$};
+			\node[left]  at (v2) {$v_2$};
+			\node[right] at (v3) {$v_3$};
+			\node[below left] at (v4) {$v_4$};
+			\node[below right] at (v5) {$v_5$};
+		\end{tikzpicture}
+	\end{center}
+
+	\chapter{树与生成树}
+	\section{树的基本性质}
+	一个连通且不含圈的图称为\textbf{树}\index{树}。树是结构最简单、应用最广泛的一类图。
+
+	\begin{theorem}\label{thm:tree}
+		设 $T$ 是一棵 $n$ 阶树，则 $T$ 恰有 $n-1$ 条边。
+	\end{theorem}
+	\begin{proof}
+		对 $n$ 作归纳。当 $n=1$ 时，树只有一个顶点、零条边，结论成立。设 $n\ge 2$，取 $T$ 中一条边 $e=uv$。删去 $e$ 后 $T$ 分裂为两个连通分支，它们都不含圈，故均为树，阶数分别为 $n_1,n_2$，且 $n_1+n_2=n$。由归纳假设，两分支边数分别为 $n_1-1$ 与 $n_2-1$，再加上被删去的边 $e$，总边数为 $(n_1-1)+(n_2-1)+1=n-1$。
+	\end{proof}
+
+	\begin{corollary}
+		每棵至少含两个顶点的树至少有两个度数为 $1$ 的顶点。
+	\end{corollary}
+
+	\section{生成树与矩阵树定理}
+	若连通图 $G$ 的一个生成子图是树，则称之为 $G$ 的一棵\textbf{生成树}\index{生成树}。求生成树的贪心算法（Kruskal 算法）按边权从小到大选边，且不产生圈，最终得到一棵最小生成树\cite{graphbook}。
+
+	一个深刻的结果把生成树的计数化为行列式计算。设连通图 $G$ 的拉普拉斯矩阵为 $L=D-A$，其中 $D$ 为度数矩阵、$A$ 为邻接矩阵。删去 $L$ 的任意一行与一列得到矩阵 $L'$，则 $G$ 的生成树个数等于 $\det L'$。
+
+	\begin{example}[矩阵树定理一例]
+		对三角形图 $K_3$，其拉普拉斯矩阵为
+		\[
+			L=
+			\begin{pmatrix}
+				2 & -1 & -1 \\
+				-1 & 2 & -1 \\
+				-1 & -1 & 2
+			\end{pmatrix}.
+		\]
+		删去第三行第三列得 $L'=\begin{pmatrix}2&-1\\-1&2\end{pmatrix}$，于是
+		\[
+			\det L'=\begin{vmatrix}2 & -1\\ -1 & 2\end{vmatrix}=4-1=3.
+		\]
+		故 $K_3$ 恰有 $3$ 棵生成树，与直接枚举的结果一致。
+	\end{example}
+
+	下面给出若干小图的生成树计数，可看出公式与实际相符：
+
+	\begin{center}
+		\begin{tabular}{c|c|c}
+			\hline
+			图 & 阶数 & 生成树个数 \\
+			\hline
+			单点图 $K_1$ & 1 & 1 \\
+			路径 $P_3$ & 3 & 1 \\
+			三角形 $K_3$ & 3 & 3 \\
+			完全图 $K_4$ & 4 & 16 \\
+			\hline
+		\end{tabular}
+	\end{center}
+
+	\section{一棵树的图示}
+	\begin{center}
+		\begin{tikzpicture}[scale=0.95, vertex/.style={circle, draw=blue!70!black, fill=blue!12, minimum size=5mm, inner sep=0pt}]
+			\node[vertex] (r) at (0,2.0) {};
+			\node[vertex] (a) at (-1.5,0.8) {};
+			\node[vertex] (b) at (1.5,0.8) {};
+			\node[vertex] (a1) at (-2.2,-0.6) {};
+			\node[vertex] (a2) at (-0.9,-0.6) {};
+			\node[vertex] (b1) at (0.9,-0.6) {};
+			\node[vertex] (b2) at (2.2,-0.6) {};
+			\draw (r)--(a) (r)--(b) (a)--(a1) (a)--(a2) (b)--(b1) (b)--(b2);
+			\node[above] at (r) {$r$};
+		\end{tikzpicture}
+	\end{center}
+	该树有 $7$ 个顶点、$6$ 条边，恰符合定理~\ref{thm:tree} 的结论。
+
+	\chapter{欧拉图与哈密顿图}
+	\section{欧拉回路}
+	从某顶点出发，经过图中每条边恰好一次并回到出发点，这样的回路称为\textbf{欧拉回路}\index{欧拉回路}，含欧拉回路的图称为\textbf{欧拉图}。
+
+	\begin{theorem}[欧拉判别法]
+		连通图 $G$ 是欧拉图，当且仅当 $G$ 中每个顶点的度数都是偶数。
+	\end{theorem}
+	\begin{proof}
+		必要性：欧拉回路每次进入一个顶点必从另一条边离开，故每经过一次贡献 $2$ 度，所有顶点度数为偶。充分性：从任一顶点出发沿未用过的边行走，由于每点度数为偶，除起点外每次进入都能离开，故只能在起点停止，得到一个圈；若还有未用过的边，则从圈上某点继续同样的行走并并入已有回路，最终用完所有边。
+	\end{proof}
+
+	\begin{example}
+		下图由两个三角形共用一个顶点构成。中心顶点 $v_0$ 的度数为 $4$，其余顶点的度数均为 $2$，故它是欧拉图；一条欧拉回路为 $v_0v_1v_2v_0v_3v_4v_0$。
+		\begin{center}
+			\begin{tikzpicture}[scale=1.3,
+				vertex/.style={circle, draw=blue!70!black, fill=blue!12, minimum size=5mm, inner sep=0pt}]
+				\node[vertex] (o)  at (0,0)      {};
+				\node[vertex] (v1) at (-1.3,1.5) {};
+				\node[vertex] (v2) at (1.3,1.5)  {};
+				\node[vertex] (v3) at (-1.3,-1.5){};
+				\node[vertex] (v4) at (1.3,-1.5) {};
+				\draw[blue!70!black, thick] (o)--(v1) (v1)--(v2) (v2)--(o)
+				                            (o)--(v3) (v3)--(v4) (v4)--(o);
+				% 标签一律置于顶点外侧并留出间距；中心点标签放在两条边之间加白底，均不与线段重叠
+				\node[above left,  outer sep=3pt] at (v1) {$v_1$};
+				\node[above right, outer sep=3pt] at (v2) {$v_2$};
+				\node[below left,  outer sep=3pt] at (v3) {$v_3$};
+				\node[below right, outer sep=3pt] at (v4) {$v_4$};
+				\node[fill=white, inner sep=1.5pt] at (0.5,0) {$v_0$};
+			\end{tikzpicture}
+		\end{center}
+	\end{example}
+
+	\begin{example}
+		作为对照，模板同样擅长绘制函数曲线。下图是二次函数 $y=\dfrac{1}{3}x^2$ 在区间 $[-3,3]$ 上的图像，曲线光滑、关于 $y$ 轴对称，顶点在原点。
+		\begin{center}
+			\begin{tikzpicture}[scale=1.1]
+				\draw[->] (-3.5,0) -- (3.5,0) node[right] {$x$};
+				\draw[->] (0,-0.5) -- (0,3.5) node[above] {$y$};
+				\draw[domain=-3:3, smooth, variable=\x, blue, thick] plot ({\x}, {0.3*\x*\x});
+				\node[below left] at (0,0) {$O$};
+			\end{tikzpicture}
+		\end{center}
+	\end{example}
+
+	\section{哈密顿回路}
+	与欧拉回路"过每条边一次"不同，\textbf{哈密顿回路}\index{哈密顿回路}要求"过每个顶点一次"。二者名称相似，难度却大相径庭：欧拉图有上述简洁的判别法，而判断一个图是否含哈密顿回路是著名的困难问题。这一对比恰当地说明了"好的刻画"在数学中的价值。
+
+	\mypart{初等数论}{%
+		数论研究整数的性质，是数学中最古老也最充满活力的分支之一。本篇从整除与同余出发，讨论素数、费马小定理与中国剩余定理。\par
+		我们只用到初等工具，但足以窥见整数世界的内在秩序。
+	}
+
+	\chapter{整除与同余}
+	\section{带余除法与最大公因数}
+	整数集 $\mathbb{Z}$ 上的整除关系是所有数论讨论的起点。若存在整数 $q$ 使 $a=bq$，则称 $b$ \textbf{整除} $a$，记作 $b\mid a$。
+
+	\begin{theorem}[带余除法]
+		对任意整数 $a$ 与正整数 $b$，存在唯一的整数 $q,r$ 使得
+		\[
+			a=bq+r,\qquad 0\le r < b.
+		\]
+	\end{theorem}
+
+	反复使用带余除法即得\textbf{辗转相除法}\index{辗转相除法}（欧几里得算法），用于求两个正整数的最大公因数 $\gcd(a,b)$：
+	\begin{align*}
+		a &= bq_1 + r_1, \\
+		b &= r_1q_2 + r_2, \\
+		r_1 &= r_2q_3 + r_3,\\
+		&\ \ \vdots
+	\end{align*}
+	最后一个非零余数即为 $\gcd(a,b)$\cite{numbook}。
+
+	\section{同余及其性质}
+	\begin{definition}[同余]
+		设 $m$ 为正整数。若 $m\mid(a-b)$，则称 $a$ 与 $b$ \textbf{模 $m$ 同余}\index{同余}，记作
+		\[
+			a\equiv b \pmod{m}.
+		\]
+	\end{definition}
+
+	同余关系保持加、减、乘运算：若 $a\equiv b\pmod m$、$c\equiv d\pmod m$，则
+	\begin{align*}
+		a+c &\equiv b+d \pmod m,\\
+		a-c &\equiv b-d \pmod m,\\
+		ac &\equiv bd \pmod m.
+	\end{align*}
+	因此，模 $m$ 的全体剩余类在加法和乘法下构成一个环，记作 $\mathbb{Z}_m$。当 $m=p$ 为素数时，$\mathbb{Z}_p$ 是一个域，这使我们可以像在实数域中一样求解线性方程\cite{numart}。
+
+	\begin{theorem}[费马小定理]
+		设 $p$ 为素数，且 $p\nmid a$，则
+		\[
+			a^{p-1}\equiv 1 \pmod p.
+		\]
+	\end{theorem}
+	\begin{proof}
+		考虑 $a,2a,\dots,(p-1)a$ 这 $p-1$ 个数模 $p$ 的余数。由于 $p\nmid a$，它们两两不同余，故恰好构成 $1,2,\dots,p-1$ 的一个排列。于是
+		\[
+			(p-1)!\cdot a^{p-1}\equiv (p-1)! \pmod p.
+		\]
+		因为 $p\nmid (p-1)!$，可在同余式两边约去 $(p-1)!$，得到 $a^{p-1}\equiv1\pmod p$。
+	\end{proof}
+
+	\begin{exercise}
+		求 $3^{100}$ 除以 $7$ 的余数。
+	\end{exercise}
+	\begin{solution}
+		因为 $7$ 是素数且 $7\nmid 3$，由费马小定理 $3^{6}\equiv1\pmod 7$。又 $100=6\times16+4$，故
+		\[
+			3^{100}\equiv\left(3^{6}\right)^{16}\cdot 3^{4}\equiv 3^{4}=81\equiv 4\pmod 7.
+		\]
+		所求余数为 $4$。
+	\end{solution}
+
+	\chapter{素数与同余方程}
+	\section{算术基本定理}
+	\begin{theorem}[算术基本定理]
+		任一大于 $1$ 的整数 $n$ 都可以唯一地写成素数的乘积（不计因子次序）：
+		\[
+			n=p_1^{\alpha_1}p_2^{\alpha_2}\cdots p_k^{\alpha_k},
+			\qquad p_1<p_2<\cdots<p_k.
+		\]
+	\end{theorem}
+	该定理表明，素数构成了整数乘法结构的"基石"。下面的表格列出前若干个素数及其平方：
+
+	\begin{center}
+		\begin{tabular}{c|cccccccc}
+			$p$ & 2 & 3 & 5 & 7 & 11 & 13 & 17 & 19 \\
+			\hline
+			$p^2$ & 4 & 9 & 25 & 49 & 121 & 169 & 289 & 361
+		\end{tabular}
+	\end{center}
+
+	\section{中国剩余定理}
+	中国古代数学著作中的"物不知数"问题，引出了下面的一般结论。
+
+	\begin{theorem}[中国剩余定理]
+		设 $m_1,m_2,\dots,m_k$ 两两互素，令 $M=m_1m_2\cdots m_k$。则同余方程组
+		\[
+			\begin{cases}
+				x\equiv a_1 \pmod{m_1},\\
+				x\equiv a_2 \pmod{m_2},\\
+				\qquad\vdots\\
+				x\equiv a_k \pmod{m_k}
+			\end{cases}
+		\]
+		在模 $M$ 意义下有唯一解。
+	\end{theorem}
+	\begin{proof}[构造性证明]
+		记 $M_i=M/m_i$，因 $(m_i,M_i)=1$，可求得 $M_i$ 模 $m_i$ 的逆元 $t_i$，即 $M_it_i\equiv1\pmod{m_i}$。令
+		\[
+			x_0=\sum_{i=1}^{k} a_i M_i t_i.
+		\]
+		对固定的 $j$，当 $i\ne j$ 时 $m_j\mid M_i$，故 $x_0\equiv a_jM_jt_j\equiv a_j\pmod{m_j}$。于是 $x_0$ 是一组解，且任意两解之差被每个 $m_i$ 整除，从而被 $M$ 整除，唯一性得证。
+	\end{proof}
+
+	\begin{exercise}
+		求解同余方程组 $x\equiv2\pmod 3,\ x\equiv3\pmod 5$。
+	\end{exercise}
+	\begin{solution*}
+		这里 $M=15$，$M_1=5,\ M_2=3$。$5$ 模 $3$ 的逆元为 $2$，$3$ 模 $5$ 的逆元为 $2$，故
+		\[
+			x_0=2\times5\times2+3\times3\times2=20+18=38\equiv8\pmod{15}.
+		\]
+		因此解为 $x\equiv8\pmod{15}$。本解答使用 solution* 环境，故无论接口 7 如何设置都会显示，适合保留必须给出的要点。
+	\end{solution*}
+
+	\section{模 $p$ 域上的线性方程组}
+	当 $p$ 为素数时，$\mathbb{Z}_p$ 是域，因此实数域上的克莱姆法则在此同样成立。设线性同余方程组的系数矩阵为 $A$，若 $\det A\not\equiv0\pmod p$，则方程组有唯一解。例如对
+	\[
+		A=\begin{pmatrix}2 & 1\\ 1 & 3\end{pmatrix},
+		\qquad
+		\det A=\begin{vmatrix}2 & 1\\ 1 & 3\end{vmatrix}=6-1=5.
+		\]
+	当 $p=7$ 时 $5\not\equiv0\pmod 7$，故相应的二元同余方程组在 $\mathbb{Z}_7$ 中有唯一解。这一例子再次展示了行列式在判定可解性中的作用。
+
+	% ============ 正文区结束 ============
+
+	% ---------- 参考文献与索引（模板机制，勿在此改动）----------
+	\printbibliography[title={\BibTitle}]
+	\printindex
+\end{document}

@@ -1,0 +1,22 @@
+# LaTeX 编译中间产物
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.log
+*.out
+*.toc
+*.idx
+*.ilg
+*.ind
+*.run.xml
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.xdv
+
+# 编译器/编辑器临时文件
+*.bak
+*.tmp
+*~
+.DS_Store
